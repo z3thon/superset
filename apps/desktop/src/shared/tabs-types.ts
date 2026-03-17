@@ -13,6 +13,7 @@ export type PaneType =
 	| "webview"
 	| "file-viewer"
 	| "chat"
+	| "file-tree"
 	| "devtools";
 
 /**

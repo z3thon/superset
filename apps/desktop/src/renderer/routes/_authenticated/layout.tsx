@@ -29,6 +29,7 @@ import { useHotkeysSync } from "renderer/stores/hotkeys";
 import { useSettingsStore } from "renderer/stores/settings-state";
 import { useTabsStore } from "renderer/stores/tabs/store";
 import { useAgentHookListener } from "renderer/stores/tabs/useAgentHookListener";
+import { setPaneWorkspaceRunState } from "renderer/stores/tabs/workspace-run";
 import { useWorkspaceInitStore } from "renderer/stores/workspace-init";
 import { MOCK_ORG_ID, NOTIFICATION_EVENTS } from "shared/constants";
 import { AgentHooks } from "./components/AgentHooks";
@@ -81,10 +82,7 @@ function AuthenticatedLayout() {
 					event.data.reason === "killed"
 						? "stopped-by-user"
 						: "stopped-by-exit";
-				useTabsStore.getState().setPaneWorkspaceRun(event.data.paneId, {
-					workspaceId: pane.workspaceRun.workspaceId,
-					state: nextState,
-				});
+				setPaneWorkspaceRunState(event.data.paneId, nextState);
 			}
 		},
 	});

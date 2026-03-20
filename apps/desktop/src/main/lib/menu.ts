@@ -38,6 +38,8 @@ export function registerMenuHotkeyUpdates() {
 
 export function createApplicationMenu() {
 	const closeAccelerator = getMenuAccelerator("CLOSE_WINDOW");
+	const terminalZoomInAccelerator = getMenuAccelerator("TERMINAL_ZOOM_IN");
+	const terminalZoomOutAccelerator = getMenuAccelerator("TERMINAL_ZOOM_OUT");
 	const showHotkeysAccelerator = getMenuAccelerator("SHOW_HOTKEYS");
 	const openSettingsAccelerator = getMenuAccelerator("OPEN_SETTINGS");
 
@@ -64,6 +66,21 @@ export function createApplicationMenu() {
 				{ role: "resetZoom" },
 				{ role: "zoomIn" },
 				{ role: "zoomOut" },
+				{ type: "separator" },
+				{
+					label: "Terminal Zoom In",
+					accelerator: terminalZoomInAccelerator,
+					click: () => {
+						menuEmitter.emit("terminal-zoom-in");
+					},
+				},
+				{
+					label: "Terminal Zoom Out",
+					accelerator: terminalZoomOutAccelerator,
+					click: () => {
+						menuEmitter.emit("terminal-zoom-out");
+					},
+				},
 				{ type: "separator" },
 				{ role: "togglefullscreen" },
 			],

@@ -13,6 +13,12 @@ export async function makeAppSetup(
 ) {
 	await loadReactDevToolsExtension();
 
+	// Destroy any zombie windows from a previous session to prevent
+	// stale/blank Chromium tabs from reappearing on launch.
+	for (const zombie of BrowserWindow.getAllWindows()) {
+		zombie.destroy();
+	}
+
 	// Restore windows from previous session if available
 	if (restoreWindows) {
 		await restoreWindows();

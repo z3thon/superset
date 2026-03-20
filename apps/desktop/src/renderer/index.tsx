@@ -1,3 +1,4 @@
+import "./lib/project-focus";
 import { initSentry } from "./lib/sentry";
 
 initSentry();

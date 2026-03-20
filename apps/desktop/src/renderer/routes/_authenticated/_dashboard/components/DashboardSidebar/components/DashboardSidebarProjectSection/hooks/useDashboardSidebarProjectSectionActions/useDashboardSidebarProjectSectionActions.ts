@@ -2,6 +2,7 @@ import { alert } from "@superset/ui/atoms/Alert";
 import { toast } from "@superset/ui/sonner";
 import { useState } from "react";
 import { apiTrpcClient } from "renderer/lib/api-trpc-client";
+import { electronTrpcClient } from "renderer/lib/trpc-client";
 import { useDashboardSidebarState } from "renderer/routes/_authenticated/hooks/useDashboardSidebarState";
 import { useOpenNewWorkspaceModal } from "renderer/stores/new-workspace-modal";
 import type { DashboardSidebarProject } from "../../../../types";
@@ -56,6 +57,16 @@ export function useDashboardSidebarProjectSectionActions({
 		toast.info("Open in Finder is coming soon");
 	};
 
+	const handleOpenInFocusWindow = () => {
+		electronTrpcClient.window.openProjectInNewWindow
+			.mutate({ projectId: project.id })
+			.catch((error: unknown) => {
+				toast.error(
+					`Failed to open focus window: ${error instanceof Error ? error.message : "Unknown error"}`,
+				);
+			});
+	};
+
 	const handleOpenSettings = () => {
 		toast.info("Project settings are coming soon");
 	};
@@ -85,6 +96,7 @@ export function useDashboardSidebarProjectSectionActions({
 		handleNewSection,
 		handleNewWorkspace,
 		handleOpenInFinder,
+		handleOpenInFocusWindow,
 		handleOpenSettings,
 		isRenaming,
 		renameSection,

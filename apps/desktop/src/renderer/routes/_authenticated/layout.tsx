@@ -28,6 +28,7 @@ import { useHotkeysSync } from "renderer/stores/hotkeys";
 import { useSettingsStore } from "renderer/stores/settings-state";
 import { useTabsStore } from "renderer/stores/tabs/store";
 import { useAgentHookListener } from "renderer/stores/tabs/useAgentHookListener";
+import { useTabsSync } from "renderer/stores/tabs/useTabsSync";
 import { useWorkspaceInitStore } from "renderer/stores/workspace-init";
 import { MOCK_ORG_ID, NOTIFICATION_EVENTS } from "shared/constants";
 import { AgentHooks } from "./components/AgentHooks";
@@ -64,6 +65,15 @@ function AuthenticatedLayout() {
 	useAgentHookListener();
 	useUpdateListener();
 	useHotkeysSync();
+	useTabsSync();
+
+	// Sync project data changes from other windows
+	electronTrpc.projects.onProjectChanged.useSubscription(undefined, {
+		onData: () => {
+			utils.workspaces.getAllGrouped.invalidate();
+			utils.projects.getRecents.invalidate();
+		},
+	});
 
 	// Update workspace-run pane state on terminal exit
 	electronTrpc.notifications.subscribe.useSubscription(undefined, {

@@ -6,6 +6,7 @@ import {
 	ContextMenuTrigger,
 } from "@superset/ui/context-menu";
 import {
+	LuExternalLink,
 	LuFolderOpen,
 	LuFolderPlus,
 	LuPencil,
@@ -16,6 +17,7 @@ import {
 interface DashboardSidebarProjectContextMenuProps {
 	onCreateSection: () => void;
 	onOpenInFinder: () => void;
+	onOpenInFocusWindow: () => void;
 	onOpenSettings: () => void;
 	onRemoveFromSidebar: () => void;
 	onRename: () => void;
@@ -25,6 +27,7 @@ interface DashboardSidebarProjectContextMenuProps {
 export function DashboardSidebarProjectContextMenu({
 	onCreateSection,
 	onOpenInFinder,
+	onOpenInFocusWindow,
 	onOpenSettings,
 	onRemoveFromSidebar,
 	onRename,
@@ -42,6 +45,10 @@ export function DashboardSidebarProjectContextMenu({
 				<ContextMenuItem onSelect={onOpenInFinder}>
 					<LuFolderOpen className="size-4 mr-2" />
 					Open in Finder
+				</ContextMenuItem>
+				<ContextMenuItem onSelect={onOpenInFocusWindow}>
+					<LuExternalLink className="size-4 mr-2" />
+					Open in Focus Window
 				</ContextMenuItem>
 				<ContextMenuItem onSelect={onOpenSettings}>
 					<LuSettings className="size-4 mr-2" />

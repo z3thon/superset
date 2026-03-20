@@ -15,6 +15,7 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { HiChevronRight, HiMiniPlus } from "react-icons/hi2";
 import {
+	LuExternalLink,
 	LuFolderOpen,
 	LuImage,
 	LuImageOff,
@@ -52,6 +53,10 @@ interface ProjectHeaderProps {
 	onToggleCollapse: () => void;
 	workspaceCount: number;
 	onNewWorkspace: () => void;
+	/** Extra context menu items rendered at the top of the project header menu */
+	extraContextMenuItems?: React.ReactNode;
+	/** Hide the "Open in Focus Window" context menu item */
+	hideOpenInFocusWindow?: boolean;
 }
 
 export function ProjectHeader({
@@ -67,6 +72,8 @@ export function ProjectHeader({
 	onToggleCollapse,
 	workspaceCount,
 	onNewWorkspace,
+	extraContextMenuItems,
+	hideOpenInFocusWindow,
 }: ProjectHeaderProps) {
 	const utils = electronTrpc.useUtils();
 	const navigate = useNavigate();
@@ -152,6 +159,16 @@ export function ProjectHeader({
 		updateProject.mutate({ id: projectId, patch: { hideImage: !hideImage } });
 	};
 
+	const openInFocusWindow =
+		electronTrpc.window.openProjectInNewWindow.useMutation({
+			onError: (error) =>
+				toast.error(`Failed to open focus window: ${error.message}`),
+		});
+
+	const handleOpenInFocusWindow = () => {
+		openInFocusWindow.mutate({ projectId });
+	};
+
 	const createSection = electronTrpc.workspaces.createSection.useMutation({
 		onSuccess: () => utils.workspaces.getAllGrouped.invalidate(),
 		onError: (error) =>
@@ -229,6 +246,8 @@ export function ProjectHeader({
 						</TooltipContent>
 					</Tooltip>
 					<ContextMenuContent>
+						{extraContextMenuItems}
+						{extraContextMenuItems && <ContextMenuSeparator />}
 						<ContextMenuItem onSelect={rename.startRename}>
 							<LuPencil className="size-4 mr-2" strokeWidth={STROKE_WIDTH} />
 							Rename
@@ -241,6 +260,15 @@ export function ProjectHeader({
 							/>
 							Open in Finder
 						</ContextMenuItem>
+						{!hideOpenInFocusWindow && (
+							<ContextMenuItem onSelect={handleOpenInFocusWindow}>
+								<LuExternalLink
+									className="size-4 mr-2"
+									strokeWidth={STROKE_WIDTH}
+								/>
+								Open in Focus Window
+							</ContextMenuItem>
+						)}
 						<ContextMenuItem onSelect={handleOpenSettings}>
 							<LuSettings className="size-4 mr-2" strokeWidth={STROKE_WIDTH} />
 							Project Settings
@@ -362,6 +390,8 @@ export function ProjectHeader({
 					</div>
 				</ContextMenuTrigger>
 				<ContextMenuContent>
+					{extraContextMenuItems}
+					{extraContextMenuItems && <ContextMenuSeparator />}
 					<ContextMenuItem onSelect={rename.startRename}>
 						<LuPencil className="size-4 mr-2" strokeWidth={STROKE_WIDTH} />
 						Rename
@@ -371,6 +401,15 @@ export function ProjectHeader({
 						<LuFolderOpen className="size-4 mr-2" strokeWidth={STROKE_WIDTH} />
 						Open in Finder
 					</ContextMenuItem>
+					{!hideOpenInFocusWindow && (
+						<ContextMenuItem onSelect={handleOpenInFocusWindow}>
+							<LuExternalLink
+								className="size-4 mr-2"
+								strokeWidth={STROKE_WIDTH}
+							/>
+							Open in Focus Window
+						</ContextMenuItem>
+					)}
 					<ContextMenuItem onSelect={handleOpenSettings}>
 						<LuSettings className="size-4 mr-2" strokeWidth={STROKE_WIDTH} />
 						Project Settings

@@ -1,6 +1,7 @@
 import { Spinner } from "@superset/ui/spinner";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useProjectFocus } from "renderer/hooks/useProjectFocus";
 import { electronTrpc } from "renderer/lib/electron-trpc";
 
 export const Route = createFileRoute("/_authenticated/_dashboard/workspace/")({
@@ -17,10 +18,15 @@ function LoadingSpinner() {
 
 function WorkspaceIndexPage() {
 	const navigate = useNavigate();
+	const projectFocusId = useProjectFocus();
 	const { data: workspaces, isLoading } =
 		electronTrpc.workspaces.getAllGrouped.useQuery();
 
-	const allWorkspaces = workspaces?.flatMap((group) => group.workspaces) ?? [];
+	// In focus mode, only consider workspaces from the focused project
+	const groups = projectFocusId
+		? (workspaces?.filter((g) => g.project.id === projectFocusId) ?? [])
+		: (workspaces ?? []);
+	const allWorkspaces = groups.flatMap((group) => group.workspaces);
 	const hasNoWorkspaces = !isLoading && allWorkspaces.length === 0;
 
 	useEffect(() => {

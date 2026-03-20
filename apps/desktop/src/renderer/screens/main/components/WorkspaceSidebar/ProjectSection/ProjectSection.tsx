@@ -54,6 +54,10 @@ interface ProjectSectionProps {
 	index: number;
 	/** Whether the sidebar is in collapsed mode */
 	isCollapsed?: boolean;
+	/** Extra context menu items rendered at the top of the project header menu */
+	extraContextMenuItems?: React.ReactNode;
+	/** Hide the "Open in Focus Window" context menu item */
+	hideOpenInFocusWindow?: boolean;
 }
 
 export function ProjectSection({
@@ -70,6 +74,8 @@ export function ProjectSection({
 	shortcutBaseIndex,
 	index,
 	isCollapsed: isSidebarCollapsed = false,
+	extraContextMenuItems,
+	hideOpenInFocusWindow,
 }: ProjectSectionProps) {
 	const { isProjectCollapsed, toggleProjectCollapsed } =
 		useWorkspaceSidebarStore();
@@ -255,6 +261,8 @@ export function ProjectSection({
 					onToggleCollapse={() => toggleProjectCollapsed(projectId)}
 					workspaceCount={totalWorkspaceCount}
 					onNewWorkspace={handleNewWorkspace}
+					extraContextMenuItems={extraContextMenuItems}
+					hideOpenInFocusWindow={hideOpenInFocusWindow}
 				/>
 				<AnimatePresence initial={false}>
 					{!isCollapsed && (
@@ -358,6 +366,8 @@ export function ProjectSection({
 				onToggleCollapse={() => toggleProjectCollapsed(projectId)}
 				workspaceCount={totalWorkspaceCount}
 				onNewWorkspace={handleNewWorkspace}
+				extraContextMenuItems={extraContextMenuItems}
+				hideOpenInFocusWindow={hideOpenInFocusWindow}
 			/>
 
 			<AnimatePresence initial={false}>

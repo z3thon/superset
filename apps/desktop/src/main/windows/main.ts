@@ -28,6 +28,7 @@ import {
 	getNotificationTitle,
 	getWorkspaceName,
 } from "../lib/notifications/utils";
+import { windowManager } from "../lib/window-manager";
 import {
 	getInitialWindowBounds,
 	loadWindowState,
@@ -37,6 +38,11 @@ import { getWorkspaceRuntimeRegistry } from "../lib/workspace-runtime";
 
 // Singleton IPC handler to prevent duplicate handlers on window reopen (macOS)
 let ipcHandler: ReturnType<typeof createIPCHandler> | null = null;
+
+/** Returns the singleton IPC handler so other windows can attach to it. */
+export function getIpcHandler() {
+	return ipcHandler;
+}
 
 function getWorkspaceNameFromDb(workspaceId: string | undefined): string {
 	if (!workspaceId) return "Workspace";
@@ -129,6 +135,7 @@ export async function MainWindow() {
 	registerMenuHotkeyUpdates();
 
 	currentWindow = window;
+	windowManager.setMainWindow(window);
 
 	// macOS Sequoia+: background throttling can corrupt GPU compositor layers
 	if (PLATFORM.IS_MAC) {
@@ -305,6 +312,7 @@ export async function MainWindow() {
 		// Detach window from IPC handler (handler stays alive for window reopen)
 		ipcHandler?.detachWindow(window);
 		currentWindow = null;
+		windowManager.setMainWindow(null);
 	});
 
 	return window;

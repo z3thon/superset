@@ -30,7 +30,7 @@ import {
 	HiOutlineFolderOpen,
 	HiOutlinePaintBrush,
 } from "react-icons/hi2";
-import { LuImagePlus, LuTrash2 } from "react-icons/lu";
+import { LuFolderOpen, LuImagePlus, LuRefreshCw } from "react-icons/lu";
 import { electronTrpc } from "renderer/lib/electron-trpc";
 import {
 	useImportAllWorktrees,
@@ -97,6 +97,10 @@ export function ProjectSettings({
 	const { data: project } = electronTrpc.projects.get.useQuery({
 		id: projectId,
 	});
+	const { data: allGroups = [] } =
+		electronTrpc.workspaces.getAllGrouped.useQuery();
+	const projectGroup = allGroups.find((g) => g.project.id === projectId);
+	const projectWorkspaces = projectGroup?.workspaces ?? [];
 	const { data: branchData, isLoading: isBranchDataLoading } =
 		electronTrpc.projects.getBranches.useQuery(
 			{ projectId },
@@ -140,6 +144,28 @@ export function ProjectSettings({
 		},
 	});
 
+	const discoverIcon =
+		electronTrpc.projects.triggerFaviconDiscovery.useMutation({
+			onSettled: () => {
+				utils.projects.get.invalidate({ id: projectId });
+				utils.workspaces.getAllGrouped.invalidate();
+			},
+		});
+
+	const handleRefreshIcon = useCallback(() => {
+		// Clear existing icon first so discovery runs fresh
+		setIconManuallyUploaded(false);
+		setProjectIcon.mutate(
+			{ id: projectId, icon: null },
+			{
+				onSuccess: () => {
+					discoverIcon.mutate({ id: projectId });
+				},
+			},
+		);
+	}, [projectId, setProjectIcon, discoverIcon]);
+
+	const [iconManuallyUploaded, setIconManuallyUploaded] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const handleIconUpload = useCallback(() => {
@@ -157,6 +183,7 @@ export function ProjectSettings({
 			reader.onload = () => {
 				const dataUrl = reader.result as string;
 				setProjectIcon.mutate({ id: projectId, icon: dataUrl });
+				setIconManuallyUploaded(true);
 			};
 			reader.readAsDataURL(file);
 
@@ -165,10 +192,6 @@ export function ProjectSettings({
 		},
 		[projectId, setProjectIcon],
 	);
-
-	const handleRemoveIcon = useCallback(() => {
-		setProjectIcon.mutate({ id: projectId, icon: null });
-	}, [projectId, setProjectIcon]);
 
 	const handleBranchPrefixModeChange = (value: string) => {
 		if (value === "default") {
@@ -604,6 +627,25 @@ export function ProjectSettings({
 								className="hidden"
 								onChange={handleFileChange}
 							/>
+							{!iconManuallyUploaded && (
+								<button
+									type="button"
+									onClick={handleRefreshIcon}
+									disabled={discoverIcon.isPending || setProjectIcon.isPending}
+									className={cn(
+										"flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md border",
+										"hover:bg-muted transition-colors",
+									)}
+								>
+									<LuRefreshCw
+										className={cn(
+											"size-4",
+											discoverIcon.isPending && "animate-spin",
+										)}
+									/>
+									Detect
+								</button>
+							)}
 							<button
 								type="button"
 								onClick={handleIconUpload}
@@ -614,25 +656,63 @@ export function ProjectSettings({
 								)}
 							>
 								<LuImagePlus className="size-4" />
-								{project.iconUrl ? "Replace" : "Upload"}
+								Upload
 							</button>
-							{project.iconUrl && (
+							{project.iconUrl && iconManuallyUploaded && (
 								<button
 									type="button"
-									onClick={handleRemoveIcon}
+									onClick={() => {
+										setProjectIcon.mutate({ id: projectId, icon: null });
+										setIconManuallyUploaded(false);
+									}}
 									disabled={setProjectIcon.isPending}
 									className={cn(
 										"flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md border",
 										"hover:bg-destructive/10 text-destructive transition-colors",
 									)}
 								>
-									<LuTrash2 className="size-4" />
 									Remove
 								</button>
 							)}
 						</div>
 					</div>
 				</SettingsSection>
+
+				{/* ── Workspaces ── */}
+				<div className="pt-3 border-t">
+					<h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">
+						Workspaces
+					</h3>
+					<div className="pl-4 border-l-2 border-border/50">
+						{projectWorkspaces.length === 0 ? (
+							<p className="text-sm text-muted-foreground py-2">
+								No workspaces yet.
+							</p>
+						) : (
+							<div className="space-y-1">
+								{projectWorkspaces.map((ws) => (
+									<div
+										key={ws.id}
+										className="flex items-center gap-3 py-2 px-2 rounded-md hover:bg-muted/50 transition-colors"
+									>
+										<LuFolderOpen className="size-4 text-muted-foreground shrink-0" />
+										<div className="flex-1 min-w-0">
+											<p className="text-sm font-medium truncate">
+												{ws.type === "branch" ? "local" : ws.name || ws.branch}
+											</p>
+											<p className="text-xs text-muted-foreground font-mono truncate">
+												{ws.branch}
+											</p>
+										</div>
+										<span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0">
+											{ws.type}
+										</span>
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+				</div>
 			</div>
 		</div>
 	);
